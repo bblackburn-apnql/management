@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "126204158339",
+    "firebase_url": "https://apnql-e70fd.firebaseio.com",
+    "project_id": "apnql-e70fd",
+    "storage_bucket": "apnql-e70fd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126204158339:android:abede5e6d31504a9a2d6b6",
+        "android_client_info": {
+          "package_name": "com.example.flutter_apnql"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "126204158339-g9llnsgpgmle4b7ob4l523328038e03c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA67N5OXMIdiiatPhbgoMqUb4QJ-VzZXOo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "126204158339-g9llnsgpgmle4b7ob4l523328038e03c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
