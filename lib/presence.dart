@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:firebase_database/ui/firebase_animated_list.dart';
@@ -49,7 +50,7 @@ var format = new DateFormat('yMd', "fr_CA");
 class _AgendaState extends State<Agenda> {
 
   //var format = new DateFormat('yMd', "fr_CA");
-  var formatShow = new DateFormat('d MMMM y', "fr_CA");
+  var formatShow = new DateFormat('d MMM y', "fr_CA");
   Widget _addButton;
 
 
@@ -154,10 +155,10 @@ class _AgendaState extends State<Agenda> {
   loadUserInfos() async {
     final prefs = await SharedPreferences.getInstance();
     final userName = prefs.getString('userName') ?? "";
+    _userName = userName;
     if (userName != _userName) {
       Future<DataSnapshot> dbUser = FirebaseDatabase.instance.reference().child("users").child(userName).once();
       dbUser.then((value) {
-        print("dbUser: ${value.value}");
         if (value.value != null) {
           setState(() {
             _userName = userName;
@@ -167,7 +168,6 @@ class _AgendaState extends State<Agenda> {
         }
       });
       //Future<DataSnapshot> dbUserInfos = dbUser.once();
-      //print(userName);
       //dbUser.then((value) => print(value.value));
       /*setState(() {
         _userName = userName;
@@ -196,30 +196,30 @@ class AgendaItem extends StatefulWidget {
 class _AgendaItemState extends State<AgendaItem> {
   bool _selectedItem = false;
   var format = new DateFormat('yMd', "fr_CA");
-  String fullName;
 
   @override
   Widget build(BuildContext context) {
-      Map<dynamic, dynamic> values = widget.snapshot.value;
-      print("key: ${values.values.first}");
-      if(values != null) {
-
-        values.forEach((key, value) {
-          print("value: $value");
-        });
-      }
+    String finalName = "";
+    final value = widget.snapshot.value.values.first;
 
 
-    print(widget.snapshot.value.toString());
-    var formatShow = new DateFormat('d MMMM y à H:m:s', "fr_CA");
-    final dbUserRef = FirebaseDatabase.instance.reference().child("users").child(widget.snapshot.key);
-    dbUserRef.once().then((value) => fullName = "${value.value["firstname"]} ${value.value["lastname"]}");
-
-    final DateTime _createDate = DateTime.fromMicrosecondsSinceEpoch(widget.snapshot.value["createdDate"] * 1000);
+    var formatShow = new DateFormat('d MMMM y à H:m', "fr_CA");
+    DataSnapshot sn = widget.snapshot;
+    final DateTime _createDate = DateTime.fromMicrosecondsSinceEpoch(value["createdDate"] * 1000);
     return Card(
       elevation: 5,
       child: ListTile(
-        title: Text(fullName, style: TextStyle(fontWeight: FontWeight.bold),),
+        title: FutureBuilder(
+            future: writeName(widget.snapshot.key),
+            builder: (context, AsyncSnapshot<String> snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return Text(snapshot.data.toString(), style: TextStyle(fontWeight: FontWeight.w900));
+              } else if (snapshot.connectionState == ConnectionState.none) {
+                return Text("No data");
+              }
+              return CircularProgressIndicator();
+            },
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Text>[
@@ -248,6 +248,13 @@ class _AgendaItemState extends State<AgendaItem> {
         )),
       ),
     );
+  }
+
+  Future<String> writeName(String username) async {
+    final dbUserRef = FirebaseDatabase.instance.reference().child("users").child(username);
+    final DataSnapshot user = await dbUserRef.once();
+    final String finalName = "${user.value["firstname"]} ${user.value["lastname"]}";
+    return finalName;
   }
 
   void _showDialog(DataSnapshot snapshot) {
@@ -331,26 +338,59 @@ class _AddButtonState extends State<AddButton> {
             });
           }
         }
-        print(_userInAgenda);
         return !_userInAgenda ?
-          FloatingActionButton(
-            key: ValueKey(_userInAgenda),
-            onPressed: () {
-              addPresenceToday(widget.dbTodayRef);
-            },
-            tooltip: 'Increment Counter',
-            child: Icon(Icons.add),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              FloatingActionButton(
+                heroTag: null,
+                onPressed: () {
+                  addPresenceToday(widget.dbTodayRef, true);
+                },
+                tooltip: 'Increment Counter',
 
-          ) : Container();
+
+                child: Text("AM"),
+                backgroundColor: Color.fromARGB(180, 50, 50, 150),
+
+              ),
+              FloatingActionButton(
+                heroTag: null,
+                onPressed: () {
+                  addPresenceToday(widget.dbTodayRef, null);
+                },
+                tooltip: 'Increment Counter',
+                backgroundColor: Color.fromARGB(200, 0, 0, 0),
+
+
+                child: Text("All\nday", textAlign: TextAlign.center),
+
+              ),
+              FloatingActionButton(
+                heroTag: null,
+                onPressed: () {
+                  addPresenceToday(widget.dbTodayRef, false);
+                },
+                tooltip: 'Increment Counter',
+                child: Text("PM"),
+                backgroundColor: Color.fromARGB(180, 50, 50, 150),
+
+              )
+            ]
+          ): Container();
+
       }
     );
   }
 
-  void addPresenceToday(DatabaseReference dbTodayRef) {
+  void addPresenceToday(DatabaseReference dbTodayRef, bool am) {
+    print(am);
     if (_userName != "") {
       var newTodayRef = dbTodayRef.child(_userName).push();
       newTodayRef.set({
+        "am": am,
         "description": "Add with fullname",
+        //"creationDate": DateTime.now().millisecond,
         "createdDate": ServerValue.timestamp,
       });
       setState(() {

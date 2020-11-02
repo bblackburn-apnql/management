@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.blue, cardTheme: CardTheme(elevation: 3)),
       home: Login(),
     );
   }
@@ -22,7 +22,6 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   TextEditingController _controller = TextEditingController();
-  bool _firstLoad = true;
 
   @override
   Widget build(BuildContext context) {
@@ -71,11 +70,9 @@ class _LoginState extends State<Login> {
 
   checkUserInfos(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    final userName = prefs.getString('userName') ?? "";
-    _controller.text = userName;
-    if ((userName != "") & _firstLoad) {
-      _firstLoad = false;
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Presence()));
+    final userName = prefs.getString('userName');
+    if(userName != null) {
+      _controller.text = userName;
     }
   }
 }
